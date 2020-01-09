@@ -178,33 +178,27 @@ class Raketa {
         this.primeniSilu = function (sila) {
             this.acc.add(sila);
         };
-        this.izracunajFitness = function () {
+        this.izracunajFitness = function() {
+            var d = dist(this.position.x, this.position.y, meta.x, meta.y);
+            this.fitness = map(d, 0, width, 2 * width, 1);
             if (this.pogodio) {
-                this.fitness *= 7;
-                this.fitness += map(this.count, 0, 350, 3500, 100);
+              this.fitness *= 7;
+              this.fitness += map(this.count, 0, 350, 3500, 100);
+            } else if (this.zid == true) {
+              if (this.position.y > py + ph) this.fitness = 1;
+              else this.fitness /= 10;
+            } else if (this.iznad == true) this.fitness /= 6;
+            else if (this.prepreka == true)
+              this.fitness = zidHeuristika(this.position.x);
+            else if (this.position.y > height) this.fitness = 1;
+            else if (this.unistena) this.fitness = 2;
+            else if (this.position.y < py + ph) {
+              var d = dist(this.position.x, this.position.y, meta.x, meta.y);
+              this.fitness = map(d, 0, 2 * width, width, 1);
+            } else {
+              this.fitness = 3;
             }
-            else if (this.zid == true){
-                if(this.position.y>py+ph)
-                    this.fitness = 1;
-                else 
-                    this.fitness /= 10;
-            }  
-            else if (this.iznad == true)
-                this.fitness /=3;
-            else if(this.prepreka == true)
-                this.fitness = zidHeuristika(this.position.x);
-            else if (this.position.y>height)
-                this.fitness = 1;
-            else if (this.unistena) 
-                this.fitness = 2;
-            else if(this.position.y<py+ph){
-                var d = dist(this.position.x, this.position.y, meta.x, meta.y);
-                this.fitness = map(d, 0, width, width, 1);
-            }
-            else{
-                this.fitness = 3;
-            }
-        };
+          };
         this.mutate = function () {
             for (var i = 0; i < dnk.geni.length; i++) {
                 if (random(1) < 0.01) {

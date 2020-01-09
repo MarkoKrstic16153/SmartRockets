@@ -105,6 +105,7 @@ class Raketa {
         this.fitness;
         this.pogodio = false;
         this.unistena = false;
+        this.prepreka = false;
         this.zid = false;
         this.iznad = false;
         if (dnk)
@@ -149,7 +150,7 @@ class Raketa {
             pop();
         };
         this.pomeri = function () {
-            if (this.pogodio == false && this.unistena == false) {
+            if (this.pogodio == false && this.unistena == false && this.prepreka == false) {
                 this.primeniSilu(this.dnk.geni[count]);
                 this.velocity.add(this.acc);
                 this.position.add(this.velocity);
@@ -158,9 +159,11 @@ class Raketa {
                 var d = dist(this.position.x, this.position.y, meta.x, meta.y);
                 if (d < 15)
                     this.pogodio = true;
-                else if (this.position.x > px && this.position.x < (px + pw) && this.position.y > py && this.position.y < (py + ph))
+                else if (this.position.x > px && this.position.x < (px + pw) && this.position.y > py && this.position.y < (py + ph)){
                     this.unistena = true;
-                else if (this.position.x < 0 || this.position.x > width || this.y > height) {
+                    this.prepreka = true;
+                }
+                else if (this.position.x < 0 || this.position.x > width) {
                     this.unistena = true;
                     this.zid = true;
                 }
@@ -176,18 +179,31 @@ class Raketa {
             this.acc.add(sila);
         };
         this.izracunajFitness = function () {
-            var d = dist(this.position.x, this.position.y, meta.x, meta.y);
-            this.fitness = map(d, 0, width, width, 1);
             if (this.pogodio) {
                 this.fitness *= 7;
                 this.fitness += map(this.count, 0, 350, 3500, 100);
             }
-            else if (this.zid == true)
-                this.fitness /= 10;
+            else if (this.zid == true){
+                if(this.position.y>py+ph)
+                    this.fitness = 1;
+                else 
+                    this.fitness /= 10;
+            }  
             else if (this.iznad == true)
                 this.fitness /=3;
-            else if (this.unistena) 
+            else if(this.prepreka == true)
+                this.fitness = zidHeuristika(this.position.x);
+            else if (this.position.y>height)
                 this.fitness = 1;
+            else if (this.unistena) 
+                this.fitness = 2;
+            else if(this.position.y<py+ph){
+                var d = dist(this.position.x, this.position.y, meta.x, meta.y);
+                this.fitness = map(d, 0, width, width, 1);
+            }
+            else{
+                this.fitness = 3;
+            }
         };
         this.mutate = function () {
             for (var i = 0; i < dnk.geni.length; i++) {
@@ -198,6 +214,13 @@ class Raketa {
             }
         };
     }
+}
+
+function zidHeuristika(posX){
+    if(this.posX<width/2)
+        return map(posX,0,width/2,1,4);
+    else
+        return map(posX,width/2-1,width,4,1);
 }
 
 function setup(){
@@ -268,7 +291,7 @@ function keyPressed(){
         meta.x -= 10;
     else if(key === 'W' || key === 'w')
         meta.y -= 10;
-    else if(key === 'S'|| key === 's')
+    else if((key === 'S'|| key === 's') && (meta.y+10)< py)
         meta.y += 10;
     else if(key === 'D'|| key === 'd')
         meta.x += 10;
